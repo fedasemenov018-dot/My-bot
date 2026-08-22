@@ -1,10 +1,16 @@
+import os
+import threading
+from flask import Flask
 import telebot
 from telebot import types
-import os
-from flask import Flask
 
+app = Flask(__name__)
+
+# Токен бота (оставил как в исходном коде)
 bot = telebot.TeleBot('8745020834:AAHlDdroqkuhDJkbG4Qqtu72pnGmgVHWcvg')
-ADMIN_ID = '8549327132'
+
+# Админский ID — лучше хранить в окружении, но оставил как число
+ADMIN_ID = 8549327132
 CHANNEL_USERNAME = "@tehnoprofiLipetsk"
 
 user_data = {}
@@ -13,7 +19,7 @@ def is_subscribed(user_id):
     try:
         member = bot.get_chat_member(CHANNEL_USERNAME, user_id)
         return member.status != 'left' and member.status != 'kicked'
-    except:
+    except Exception:
         return False
 
 def get_main_menu():
@@ -25,6 +31,10 @@ def get_main_menu():
     btn5 = types.InlineKeyboardButton("☎️ Контакты", callback_data="kontakty")
     markup.add(btn1, btn2, btn3, btn4, btn5)
     return markup
+
+@app.route('/')
+def home():
+    return "Bot is running"
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -49,7 +59,13 @@ def start(message):
 def check_sub(call):
     if is_subscribed(call.from_user.id):
         bot.answer_callback_query(call.id, "Спасибо за подписку! ✅")
-        bot.edit_message_text("👋 <b>Добро пожаловать в «ТехноПрофи»!</b>\n\n🔨 Мы подбираем лучших строителей и мастеров по ремонту.\n💯 Работаем быстро, качественно и с гарантией.\n\n👇 <b>Выберите действие:</b>", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=get_main_menu(), parse_mode='HTML')
+        bot.edit_message_text(
+            "👋 <b>Добро пожаловать в «ТехноПрофи»!</b>\n\n🔨 Мы подбираем лучших строителей и мастеров по ремонту.\n💯 Работаем быстро, качественно и с гарантией.\n\n👇 <b>Выберите действие:</b>",
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            reply_markup=get_main_menu(),
+            parse_mode='HTML'
+        )
     else:
         bot.answer_callback_query(call.id, "Вы еще не подписались на канал!", show_alert=True)
 
@@ -80,7 +96,7 @@ def handle_callback(call):
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "how_it_works":
-        text = "📋 <b>Как мы работаем:</b>\n\n1️⃣ Вы оставляете заявку\n2️⃣ Мы звоним и уточняем детали\n3️⃣ Мастер приезжает и рассчитывает точную ��тоимость\n4️⃣ Выполняем работу\n5️⃣ Вы оплачиваете результат\n\n💯 Всё просто и с гарантией!"
+        text = "📋 <b>Как мы работаем:</b>\n\n1️⃣ Вы оставляете заявку\n2️⃣ Мы звоним и уточняем детали\n3️⃣ Мастер приезжает и рассчитывает точную стоимость\n4️⃣ Выполняем работу\n5️⃣ Вы оплачиваете результат\n\n💯 Всё просто и с гарантией!"
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("⬅️ В меню", callback_data="menu"))
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
@@ -155,11 +171,12 @@ def get_time(message):
         markup = types.InlineKeyboardMarkup()
         try:
             markup.add(types.InlineKeyboardButton("📞 Позвонить", url=f"tel:{phone}"))
-        except:
+        except Exception:
             pass
         try:
+            # Оставил статическую ссылку WhatsApp, можно заменить на wa.me/{phone} при необходимости
             markup.add(types.InlineKeyboardButton("💬 Написать в WhatsApp", url="https://wa.me/79508075788"))
-        except:
+        except Exception:
             pass
         markup.add(types.InlineKeyboardButton("🏠 В меню", callback_data="menu"))
 
@@ -175,18 +192,11 @@ def get_time(message):
         print(f"Ошибка при отправке клиенту: {e}")
         try:
             bot.send_message(message.chat.id, f"🎉 Спасибо, {name}!\n\n✅ Ваша заявка по услуге «{service}» принята!\n📞 Мы свяжемся с вами в ближайшее время.")
-        except:
+        except Exception:
             pass
 
-bot.polling(none_stop=True)
-
-import os
-from flask import Flask
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return "Bot is running"
-
 if __name__ == "__main__":
+    # Запускаем polling в отдельном потоке, чтобы не блокировать Flask
+    threading.Thread(target=bot.polling, kwargs={'non_stop': True}).start()
+    # Запускаем Flask-процесс
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
