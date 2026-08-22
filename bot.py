@@ -6,8 +6,8 @@ from flask import Flask
 
 app = Flask(__name__)
 
-@app.route('/')
-def home():
+@app.route('/health')
+def health():
     return "Bot is running"
 
 bot = telebot.TeleBot('8745020834:AAE6EYFuQDYgaxIZDWPqs_axchaHG9CiWrI')
@@ -52,10 +52,6 @@ STROYBAZA_CATALOG = {
         "callback": "stroybaza_materiali"
     }
 }
-
-@app.route('/')
-def home():
-    return "Bot is running"
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -207,7 +203,7 @@ def handle_callback(call):
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "reviews":
-        text = "💬 <b>Отзывы наших клиентов:</b>\n\n⭐️⭐️⭐️⭐️⭐️ «Сделали ремонт за 2 дня, всё супер!» — Анна\n⭐️⭐️⭐️⭐️⭐️ «Быстро вывезли мусор, цена честная» — Дмитрий\n⭐️⭐️⭐️⭐️⭐️ «Рабочие приехали вовремя, работают качественно» — Ольга\n\n📝 Хотите так же? Оставьте заявку!"
+        text = "💬 <b>Отзывы наших клиентов:</b>\n\n⭐️⭐️⭐️⭐️⭐️ «Сдел��ли ремонт за 2 дня, всё супер!» — Анна\n⭐️⭐️⭐️⭐️⭐️ «Быстро вывезли мусор, цена честная» — Дмитрий\n⭐️⭐️⭐️⭐️⭐️ «Рабочие приехали вовремя, работают качественно» — Ольга\n\n📝 Хотите так же? Оставьте заявку!"
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("⬅️ В меню", callback_data="menu"))
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
@@ -306,7 +302,7 @@ def get_time(message):
             parse_mode='HTML'
         )
     except Exception as e:
-        print(f"Ошибка при отправке клиенту: {e}")
+        print(f"Ошибка при о��правке клиенту: {e}")
         try:
             bot.send_message(message.chat.id, f"🎉 Спасибо, {name}!\n\n✅ Ваша заявка по услуге «{service}» принята!\n📞 Мы свяжемся с вами в ближайшее время.")
         except:
