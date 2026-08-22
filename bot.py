@@ -30,8 +30,32 @@ def get_main_menu():
     btn3 = types.InlineKeyboardButton("💬 Отзывы", callback_data="reviews")
     btn4 = types.InlineKeyboardButton("📋 Как мы работаем", callback_data="how_it_works")
     btn5 = types.InlineKeyboardButton("☎️ Контакты", callback_data="kontakty")
-    markup.add(btn1, btn2, btn3, btn4, btn5)
+    btn6 = types.InlineKeyboardButton("🏗️ СтройБаза", callback_data="stroybaza")
+    markup.add(btn1, btn2, btn3, btn4, btn5, btn6)
     return markup
+
+# Каталог строительных материалов
+STROYBAZA_CATALOG = {
+    "poddony": {
+        "name": "🪵 Поддоны (продажа)",
+        "description": "💰 <b>Цена:</b> от 200 ₽/шт\n\n📋 Характеристики:\n• Размер: 1200x800x150 мм\n• Материал: Древесина хвойных пород\n• Грузоподъемность: 1000 кг\n\n✅ Оптовые скидки доступны",
+        "callback": "stroybaza_poddony"
+    },
+    "lesa": {
+        "name": "🛠 Леса строительные (аренда/продажа)",
+        "description": "💰 <b>Цены:</b>\n• Аренда: от 500 ₽/сутки\n• Продажа: от 15000 ₽/комплект\n\n📋 Характеристики:\n• Высота: от 2м до 10м\n• Тип: Рамные и модульные\n• Материал: Металлические трубы\n\n✅ Доставка и монтаж включены",
+        "callback": "stroybaza_lesa"
+    },
+    "materiali": {
+        "name": "🧱 Материалы (смеси, кирпич, сетка)",
+        "description": "💰 <b>Цены:</b>\n• Кирпич: от 8 ₽/шт\n• Смеси: от 350 ₽/мешок\n• Сетка: от 150 ₽/м²\n\n📋 Материалы:\n• Кирпич облицовочный и рядовой\n• Цементные и гипсовые смеси\n• Сетка армирующая и кладочная\n\n✅ Скидки на объем",
+        "callback": "stroybaza_materiali"
+    }
+}
+
+@app.route('/')
+def home():
+    return "Bot is running"
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -59,6 +83,108 @@ def check_sub(call):
         bot.edit_message_text("👋 <b>Добро пожаловать в «ТехноПрофи»!</b>\n\n🔨 Мы подбираем лучших строителей и мастеров по ремонту.\n💯 Работаем быстро, качественно и с гарантией.\n\n👇 <b>Выберите действие:</b>", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=get_main_menu(), parse_mode='HTML')
     else:
         bot.answer_callback_query(call.id, "Вы еще не подписались на канал!", show_alert=True)
+
+@bot.callback_query_handler(func=lambda call: call.data == "stroybaza")
+def stroybaza_menu(call):
+    text = "🏗️ <b>СтройБаза - каталог материалов</b>\n\nВыберите категорию:"
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    
+    for key, item in STROYBAZA_CATALOG.items():
+        btn = types.InlineKeyboardButton(item["name"], callback_data=item["callback"])
+        markup.add(btn)
+    
+    btn_back = types.InlineKeyboardButton("⬅️ В меню", callback_data="menu")
+    markup.add(btn_back)
+    
+    bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("stroybaza_") and not call.data.startswith("stroybaza_order_"))
+def stroybaza_category(call):
+    category = call.data.replace("stroybaza_", "")
+    
+    if category in STROYBAZA_CATALOG:
+        item = STROYBAZA_CATALOG[category]
+        text = item["description"]
+        
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton("📞 Оставить заявку", callback_data=f"stroybaza_order_{category}"))
+        markup.add(types.InlineKeyboardButton("⬅️ Назад", callback_data="stroybaza"))
+        
+        bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("stroybaza_order_"))
+def stroybaza_order(call):
+    category = call.data.replace("stroybaza_order_", "")
+    
+    if category in STROYBAZA_CATALOG:
+        item = STROYBAZA_CATALOG[category]
+        user_data[call.from_user.id] = {
+            "type": "stroybaza",
+            "category": item["name"]
+        }
+        
+        text = f"📝 Вы выбрали: <b>{item['name']}</b>\n\n✍️ Напишите <b>кол-во и параметры товара</b> (например: «Поддоны 50 шт» или «Леса 5м в аренду»):"
+        bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, parse_mode='HTML')
+        bot.register_next_step_handler(call.message, stroybaza_get_quantity)
+
+def stroybaza_get_quantity(message):
+    user_id = message.from_user.id
+    
+    if user_id in user_data and isinstance(user_data[user_id], dict):
+        user_data[user_id]["quantity"] = message.text
+        bot.send_message(message.chat.id, "📱 Напишите ваш <b>Номер телефона</b>:", parse_mode='HTML')
+        bot.register_next_step_handler(message, stroybaza_get_phone)
+    else:
+        bot.send_message(message.chat.id, "❌ Ошибка. Пожалуйста, начните заново из меню.")
+
+def stroybaza_get_phone(message):
+    user_id = message.from_user.id
+    phone = message.text
+    
+    if user_id in user_data and isinstance(user_data[user_id], dict):
+        user_data[user_id]["phone"] = phone
+        bot.send_message(message.chat.id, "📍 Напишите ваш <b>Адрес или город</b>:", parse_mode='HTML')
+        bot.register_next_step_handler(message, stroybaza_get_address)
+
+def stroybaza_get_address(message):
+    user_id = message.from_user.id
+    address = message.text
+    
+    if user_id in user_data and isinstance(user_data[user_id], dict):
+        user_data[user_id]["address"] = address
+        
+        # Отправляем заявку администратору
+        category = user_data[user_id]["category"]
+        quantity = user_data[user_id]["quantity"]
+        phone = user_data[user_id]["phone"]
+        
+        admin_text = (
+            f"🏗️ <b>НОВАЯ ЗАЯВКА НА СТРОИТЕЛЬНЫЕ МАТЕРИАЛЫ!</b>\n\n"
+            f"📦 <b>Категория:</b> {category}\n"
+            f"📋 <b>Товар:</b> {quantity}\n"
+            f"📱 <b>Телефон:</b> {phone}\n"
+            f"📍 <b>Адрес:</b> {address}"
+        )
+        
+        try:
+            bot.send_message(ADMIN_ID, admin_text, parse_mode='HTML')
+        except Exception as e:
+            print(f"Ошибка при отправке админу: {e}")
+        
+        # Отправляем подтверждение клиенту
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton("💬 Написать в WhatsApp", url="https://wa.me/79508075788"))
+        markup.add(types.InlineKeyboardButton("🏠 В меню", callback_data="menu"))
+        
+        bot.send_message(
+            message.chat.id,
+            f"✅ <b>Спасибо за заявку!</b>\n\n"
+            f"📦 Ваша заявка по материалам <b>{category}</b> принята!\n"
+            f"📞 Мы свяжемся с вами в ближайшее время.\n\n"
+            f"Хорошего дня! 😊",
+            reply_markup=markup,
+            parse_mode='HTML'
+        )
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
@@ -110,7 +236,7 @@ def handle_callback(call):
             "usluga_svoy": "📝 Свой вариант"
         }
         service = service_map.get(call.data, "Выбранная услуга")
-        user_data[call.from_user.id] = service
+        user_data[call.from_user.id] = {"type": "service", "service": service}
         bot.edit_message_text(f"✅ Отлично! Вы выбрали: <b>{service}</b>\n\n✍️ Теперь напишите ваше <b>Имя</b>:", chat_id=call.message.chat.id, message_id=call.message.message_id, parse_mode='HTML')
         bot.register_next_step_handler(call.message, get_name)
 
@@ -141,7 +267,7 @@ def get_time(message):
 
     name = user_data.get(f'{user_id}_name', "Не указано")
     phone = user_data.get(f'{user_id}_phone', "Не указано")
-    service = user_data.get(user_id, "Не указано")
+    service = user_data.get(user_id, {}).get("service", "Не указано") if isinstance(user_data.get(user_id), dict) else user_data.get(user_id, "Не указано")
     address = user_data.get(f'{user_id}_address', "Не указано")
 
     admin_text = (
@@ -176,7 +302,8 @@ def get_time(message):
             f"✅ Ваша заявка по услуге «{service}» принята!\n"
             f"📞 Мы свяжемся с вами в ближайшее время.\n\n"
             f"Хорошего дня! 😊",
-            reply_markup=markup
+            reply_markup=markup,
+            parse_mode='HTML'
         )
     except Exception as e:
         print(f"Ошибка при отправке клиенту: {e}")
