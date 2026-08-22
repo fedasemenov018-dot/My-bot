@@ -10,7 +10,7 @@ app = Flask(__name__)
 def home():
     return "Bot is running"
 
-bot = telebot.TeleBot('8745020834:AAHlDdroqkuhDJkbG4Qqtu72pnGmgVHWcvg')
+bot = telebot.TeleBot('8745020834:AAE6EYFuQDYgaxIZDWPqs_axchaHG9CiWrI')
 ADMIN_ID = '8549327132'
 CHANNEL_USERNAME = "@tehnoprofiLipetsk"
 
