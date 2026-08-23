@@ -149,7 +149,6 @@ def stroybaza_get_address(message):
     if user_id in user_data and isinstance(user_data[user_id], dict):
         user_data[user_id]["address"] = address
         
-        # Отправляем заявку администратору
         category = user_data[user_id]["category"]
         quantity = user_data[user_id]["quantity"]
         phone = user_data[user_id]["phone"]
@@ -167,7 +166,6 @@ def stroybaza_get_address(message):
         except Exception as e:
             print(f"Ошибка при отправке админу: {e}")
         
-        # Отправляем подтверждение клиенту
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("💬 Написать в WhatsApp", url="https://wa.me/79508075788"))
         markup.add(types.InlineKeyboardButton("🏠 В меню", callback_data="menu"))
@@ -203,7 +201,7 @@ def handle_callback(call):
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "reviews":
-        text = "💬 <b>Отзывы наших клиентов:</b>\n\n⭐️⭐️⭐️⭐️⭐️ «Сдел��ли ремонт за 2 дня, всё супер!» — Анна\n⭐️⭐️⭐️⭐️⭐️ «Быстро вывезли мусор, цена честная» — Дмитрий\n⭐️⭐️⭐️⭐️⭐️ «Рабочие приехали вовремя, работают качественно» — Ольга\n\n📝 Хотите так же? Оставьте заявку!"
+        text = "💬 <b>Отзывы наших клиентов:</b>\n\n⭐️⭐️⭐️⭐️⭐️ «Сделали ремонт за 2 дня, всё супер!» — Анна\n⭐️⭐️⭐️⭐️⭐️ «Быстро вывезли мусор, цена честная» — Дмитрий\n⭐️⭐️⭐️⭐️⭐️ «Рабочие приехали вовремя, работают качественно» — Ольга\n\n📝 Хотите так же? Оставьте заявку!"
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("⬅️ В меню", callback_data="menu"))
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
@@ -302,9 +300,9 @@ def get_time(message):
             parse_mode='HTML'
         )
     except Exception as e:
-        print(f"Ошибка при о��правке клиенту: {e}")
+        print(f"Ошибка при отправке клиенту: {e}")
         try:
-            bot.send_message(message.chat.id, f"🎉 Спасибо, {name}!\n\n✅ Ваша заявка по услуге «{service}» принята!\n📞 Мы свяжемся с вами в ближайшее время.")
+            bot.send_message(message.chat.id, f"🎉 Спасибо, {name}!\n\n✅ Ваша заявка по услуге «{service}» принята!\n📞 Мы свя��емся с вами в ближайшее время.")
         except:
             pass
 
