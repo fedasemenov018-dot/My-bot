@@ -3,6 +3,7 @@ from telebot import types
 import os
 import threading
 from flask import Flask
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -15,6 +16,7 @@ ADMIN_ID = '8549327132'
 CHANNEL_USERNAME = "@tehnoprofiLipetsk"
 
 user_data = {}
+application_status = {}
 
 def is_subscribed(user_id):
     try:
@@ -28,7 +30,7 @@ def get_main_menu():
     btn1 = types.InlineKeyboardButton("📝 Оставить заявку", callback_data="zayavka")
     btn2 = types.InlineKeyboardButton("💰 Прайс", callback_data="price")
     btn3 = types.InlineKeyboardButton("💬 Отзывы", callback_data="reviews")
-    btn4 = types.InlineKeyboardButton("📋 Как мы работаем", callback_data="how_it_works")
+    btn4 = types.InlineKeyboardButton("���� Как мы работаем", callback_data="how_it_works")
     btn5 = types.InlineKeyboardButton("☎️ Контакты", callback_data="kontakty")
     btn6 = types.InlineKeyboardButton("🏗️ СтройБаза", callback_data="stroybaza")
     markup.add(btn1, btn2, btn3, btn4, btn5, btn6)
@@ -43,7 +45,7 @@ STROYBAZA_CATALOG = {
     },
     "lesa": {
         "name": "🛠 Леса строительные (аренда/продажа)",
-        "description": "💰 <b>Цены:</b>\n• Аренда: от 500 ₽/сутки\n• Продажа: от 15000 ₽/комплект\n\n📋 Характеристики:\n• Высота: от 2м до 10м\n• Тип: Рамные и модульные\n• Материал: Металлические трубы\n\n✅ Доставка и монтаж включены",
+        "description": "💰 <b>Цены:</b>\n• Аренда: от 500 ₽/сутки\n• Продажа: от 15000 ₽/комплект\n\n📋 Характеристики:\n• Высота: от 2м до 10м\n�� Тип: Рамные и модуль��ые\n• Материал: Металлические трубы\n\n✅ Доставка и монтаж включены",
         "callback": "stroybaza_lesa"
     },
     "materiali": {
@@ -52,6 +54,27 @@ STROYBAZA_CATALOG = {
         "callback": "stroybaza_materiali"
     }
 }
+
+def manage_status(user_id, status):
+    """Управление статусом заявки"""
+    if status == "sent":
+        message_text = "✅ Заявка отправлена! На рассмотрении"
+    elif status == "in_progress":
+        message_text = "📞 Менеджер уже связывается с вами!"
+    elif status == "completed":
+        message_text = "�� Выполнено"
+    else:
+        return
+    
+    application_status[user_id] = {
+        "status": status,
+        "timestamp": datetime.now().isoformat()
+    }
+    
+    try:
+        bot.send_message(user_id, message_text, parse_mode='HTML')
+    except Exception as e:
+        print(f"Ошибка при отправке статуса: {e}")
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -82,7 +105,7 @@ def check_sub(call):
 
 @bot.callback_query_handler(func=lambda call: call.data == "stroybaza")
 def stroybaza_menu(call):
-    text = "🏗️ <b>СтройБаза - каталог материалов</b>\n\nВыберите категорию:"
+    text = "🏗️ <b>Стр��йБаза - каталог материалов</b>\n\nВыберите категорию:"
     markup = types.InlineKeyboardMarkup(row_width=1)
     
     for key, item in STROYBAZA_CATALOG.items():
@@ -128,7 +151,7 @@ def stroybaza_get_quantity(message):
     
     if user_id in user_data and isinstance(user_data[user_id], dict):
         user_data[user_id]["quantity"] = message.text
-        bot.send_message(message.chat.id, "📱 Напишите ваш <b>Номер телефона</b>:", parse_mode='HTML')
+        bot.send_message(message.chat.id, "📱 Напишите ваш <b>Н��мер телефона</b>:", parse_mode='HTML')
         bot.register_next_step_handler(message, stroybaza_get_phone)
     else:
         bot.send_message(message.chat.id, "❌ Ошибка. Пожалуйста, начните заново из меню.")
@@ -158,7 +181,8 @@ def stroybaza_get_address(message):
             f"📦 <b>Категория:</b> {category}\n"
             f"📋 <b>Товар:</b> {quantity}\n"
             f"📱 <b>Телефон:</b> {phone}\n"
-            f"📍 <b>Адрес:</b> {address}"
+            f"📍 <b>Адрес:</b> {address}\n"
+            f"👤 <b>User ID:</b> {user_id}"
         )
         
         try:
@@ -166,13 +190,15 @@ def stroybaza_get_address(message):
         except Exception as e:
             print(f"Ошибка при отправке админу: {e}")
         
+        # Отправляем статус клиенту
+        manage_status(user_id, "sent")
+        
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("💬 Написать в WhatsApp", url="https://wa.me/79508075788"))
         markup.add(types.InlineKeyboardButton("🏠 В меню", callback_data="menu"))
         
         bot.send_message(
             message.chat.id,
-            f"✅ <b>Спасибо за заявку!</b>\n\n"
             f"📦 Ваша заявка по материалам <b>{category}</b> принята!\n"
             f"📞 Мы свяжемся с вами в ближайшее время.\n\n"
             f"Хорошего дня! 😊",
@@ -203,7 +229,7 @@ def handle_callback(call):
     elif call.data == "reviews":
         text = "💬 <b>Отзывы наших клиентов:</b>\n\n⭐️⭐️⭐️⭐️⭐️ «Сделали ремонт за 2 дня, всё супер!» — Анна\n⭐️⭐️⭐️⭐️⭐️ «Быстро вывезли мусор, цена честная» — Дмитрий\n⭐️⭐️⭐️⭐️⭐️ «Рабочие приехали вовремя, работают качественно» — Ольга\n\n📝 Хотите так же? Оставьте заявку!"
         markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("⬅️ В меню", callback_data="menu"))
+        markup.add(types.InlineKeyboardButton("⬅️ �� меню", callback_data="menu"))
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "how_it_works":
@@ -270,13 +296,17 @@ def get_time(message):
         f"👤 <b>Имя:</b> {name}\n"
         f"📱 <b>Телефон:</b> {phone}\n"
         f"📍 <b>Адрес:</b> {address}\n"
-        f"⏰ <b>Время:</b> {time}"
+        f"⏰ <b>Время:</b> {time}\n"
+        f"👤 <b>User ID:</b> {user_id}"
     )
 
     try:
         bot.send_message(ADMIN_ID, admin_text, parse_mode='HTML')
     except Exception as e:
         print(f"Ошибка при отправке админу: {e}")
+
+    # Отправляем статус клиенту
+    manage_status(user_id, "sent")
 
     try:
         markup = types.InlineKeyboardMarkup()
@@ -292,8 +322,7 @@ def get_time(message):
 
         bot.send_message(
             message.chat.id,
-            f"🎉 Спасибо, {name}!\n\n"
-            f"✅ Ваша заявка по услуге «{service}» принята!\n"
+            f"📋 Ваша заявка по услуге «{service}» принята!\n"
             f"📞 Мы свяжемся с вами в ближайшее время.\n\n"
             f"Хорошего дня! 😊",
             reply_markup=markup,
@@ -302,9 +331,17 @@ def get_time(message):
     except Exception as e:
         print(f"Ошибка при отправке клиенту: {e}")
         try:
-            bot.send_message(message.chat.id, f"🎉 Спасибо, {name}!\n\n✅ Ваша заявка по услуге «{service}» принята!\n📞 Мы свя��емся с вами в ближайшее время.")
+            bot.send_message(message.chat.id, f"📋 Ваша заявка по услуге «{service}» принята!\n📞 Мы свяжемся с вами в ближайшее время.")
         except:
             pass
+
+@app.route('/set_status/<int:user_id>/<status>')
+def set_status(user_id, status):
+    """API для изменения статуса заявки (для админа)"""
+    if status in ["sent", "in_progress", "completed"]:
+        manage_status(user_id, status)
+        return f"Статус {status} отправлен пользователю {user_id}", 200
+    return "Неверный статус", 400
 
 if __name__ == "__main__":
     import threading
