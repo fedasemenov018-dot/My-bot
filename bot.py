@@ -11,7 +11,7 @@ def health():
     return "Bot is running"
 
 bot = telebot.TeleBot('8745020834:AAHOBXQIyVLT3TPKAKvVS2hJNNgtVyxoqJg')
-ADMIN_ID = '8549327132'
+ADMIN_ID = 8549327132
 CHANNEL_USERNAME = "@tehnoprofiLipetsk"
 USER_TG = "@Pankovvff"
 
