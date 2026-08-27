@@ -195,4 +195,4 @@ def get_time(message):
 if __name__ == "__main__":
     import threading
     threading.Thread(target=bot.polling, kwargs={'non_stop': True}).start()
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000))
