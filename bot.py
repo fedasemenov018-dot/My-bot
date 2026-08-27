@@ -59,7 +59,9 @@ def start(message):
         bot.send_message(message.chat.id, "👋 Чтобы продолжить, пожалуйста, подпишитесь на наш новостной канал:", reply_markup=markup)
         return
 
-    # Приветствие с фото
+    # Приветствие (фото отправляется отдельно, потом текст с кнопками)
+    bot.send_photo(message.chat.id, photo="https://t.me/fpfpldf/2")
+    
     text = (
         "👋 <b>Добро пожаловать в «ТехноПрофи»!</b>\n\n"
         "🔨 Сервис подбора мастеров + наша <b>СтройБаза</b>!\n"
@@ -67,7 +69,7 @@ def start(message):
         "💯 Работаем быстро, качественно и с гарантией.\n\n"
         "👇 <b>Выберите действие:</b>"
     )
-    bot.send_photo(message.chat.id, photo="https://t.me/fpfpldf/2", caption=text, reply_markup=get_main_menu(), parse_mode='HTML')
+    bot.send_message(message.chat.id, text, reply_markup=get_main_menu(), parse_mode='HTML')
 
 @bot.callback_query_handler(func=lambda call: call.data == "check_sub")
 def check_sub(call):
