@@ -16,7 +16,6 @@ CHANNEL_USERNAME = "@tehnoprofiLipetsk"
 USER_TG = "@Pankovvff"
 
 user_data = {}
-pending_requests = {}
 
 def is_subscribed(user_id):
     try:
@@ -64,36 +63,6 @@ def start(message):
         "👇 <b>Выберите действие:</b>"
     )
     bot.send_message(message.chat.id, text, reply_markup=get_main_menu(), parse_mode='HTML')
-
-@bot.message_handler(commands=['pending'])
-def show_pending(message):
-    if message.from_user.id == ADMIN_ID:
-        if pending_requests:
-            text = "📋 <b>Список заявок:</b>\n\n"
-            for user_id, data in pending_requests.items():
-                text += f"👤 <b>Имя:</b> {data['name']}\n"
-                text += f"📱 <b>Телефон:</b> {data['phone']}\n"
-                text += f"📍 <b>Адрес:</b> {data['address']}\n"
-                text += f"⏰ <b>Время:</b> {data['time']}\n"
-                text += f"🛠 <b>Услуга:</b> {data['service']}\n\n"
-            bot.send_message(message.chat.id, text, parse_mode='HTML')
-        else:
-            bot.send_message(message.chat.id, "📭 Нет активных заявок.")
-    else:
-        bot.send_message(message.chat.id, "У вас нет прав для этой команды.")
-
-@bot.message_handler(commands=['accept'])
-def accept_order(message):
-    if message.from_user.id == ADMIN_ID:
-        user_id = pending_requests.get(ADMIN_ID)
-        if user_id:
-            bot.send_message(user_id, "✅ <b>Заявка принята!</b>\n\nМы свяжемся с вами в ближайшее время!", parse_mode='HTML')
-            pending_requests.pop(ADMIN_ID, None)
-            bot.send_message(message.chat.id, "Статус заявки обновлён: <b>Заявка принята</b>", parse_mode='HTML')
-        else:
-            bot.send_message(message.chat.id, "Нет активных заявок для принятия.")
-    else:
-        bot.send_message(message.chat.id, "У вас нет прав для этой команды.")
 
 @bot.callback_query_handler(func=lambda call: call.data == "check_sub")
 def check_sub(call):
@@ -246,7 +215,6 @@ def get_time(message):
         print(f"Ошибка при отправке статуса: {e}")
 
     try:
-        pending_requests[ADMIN_ID] = message.from_user.id
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("💬 Написать владельцу", url=f"https://t.me/{USER_TG.replace('@','')}"))
         bot.send_message(message.chat.id, f"🎉 <b>Спасибо, {name}!</b>\n\n📞 Мы свяжемся с вами в ближайшее время.\n\n💬 Если есть вопросы, пишите напрямую: {USER_TG}", reply_markup=markup, parse_mode='HTML')
