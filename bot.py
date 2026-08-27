@@ -12,7 +12,7 @@ def health():
     return "Bot is running"
 
 # Твой токен и ID
-bot = telebot.TeleBot('8745020834:AAE6EYFuQDYgaxlZDWPqS_axchaHG9CiWrl')
+bot = telebot.TeleBot('8745020834:AAHOBXQIyVLT3TPKAKvVS2hJNNgtVyxoqJg')
 ADMIN_ID = '8549327132'
 CHANNEL_USERNAME = "@tehnoprofiLipetsk"
 USER_TG = "@Pankovvff"  # Твой юзернейм
