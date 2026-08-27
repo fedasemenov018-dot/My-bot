@@ -26,9 +26,9 @@ def is_subscribed(user_id):
     except:
         return False
 
-# Главное меню
+# Главное меню (кнопки в парах)
 def get_main_menu():
-    markup = types.InlineKeyboardMarkup(row_width=1)
+    markup = types.InlineKeyboardMarkup(row_width=2)
     btn1 = types.InlineKeyboardButton("📝 Оставить заявку", callback_data="zayavka")
     btn2 = types.InlineKeyboardButton("🏗 СтройБаза", callback_data="stroybaza")
     btn3 = types.InlineKeyboardButton("💰 Прайс", callback_data="price")
