@@ -4,18 +4,16 @@ import os
 import threading
 from flask import Flask
 
-# Flask для Render
 app = Flask(__name__)
 
 @app.route('/')
 def health():
     return "Bot is running"
 
-# НОВЫЙ токен
 bot = telebot.TeleBot('8745020834:AAHOBXQIyVLT3TPKAKvVS2hJNNgtVyxoqJg')
 ADMIN_ID = '8549327132'
 CHANNEL_USERNAME = "@tehnoprofiLipetsk"
-USER_TG = "@Pankovvff"  # Твой юзернейм
+USER_TG = "@Pankovvff"
 
 user_data = {}
 
@@ -48,7 +46,6 @@ def start(message):
         bot.send_message(message.chat.id, "👋 Чтобы продолжить, пожалуйста, подпишитесь на наш новостной канал:", reply_markup=markup)
         return
 
-    # Приветствие (без фото, чтобы не падать)
     text = (
         "👋 <b>Добро пожаловать в «ТехноПрофи»!</b>\n\n"
         "🔨 Сервис подбора мастеров + наша <b>СтройБаза</b>!\n"
@@ -178,19 +175,16 @@ def get_time(message):
         f"⏰ <b>Время:</b> {time}"
     )
 
-    # Отправка заявки админу
     try:
         bot.send_message(ADMIN_ID, admin_text, parse_mode='HTML')
     except Exception as e:
         print(f"Ошибка при отправке админу: {e}")
 
-    # Статус: Отправлено и на рассмотрении
     try:
         bot.send_message(message.chat.id, f"📨 <b>Заявка отправлена!</b>\n\nЗаявка находится на рассмотрении. Мы скоро свяжемся с вами!", parse_mode='HTML')
     except Exception as e:
         print(f"Ошибка при отправке статуса: {e}")
 
-    # После заявки, показываем ТГ для связи
     try:
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("💬 Написать владельцу", url=f"https://t.me/{USER_TG.replace('@','')}"))
@@ -198,7 +192,7 @@ def get_time(message):
     except Exception as e:
         print(f"Ошибка при отправке клиенту: {e}")
 
-bot.polling(none_stop=True)if __name__ == "__main__":
+if __name__ == "__main__":
     import threading
     threading.Thread(target=bot.polling, kwargs={'non_stop': True}).start()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
