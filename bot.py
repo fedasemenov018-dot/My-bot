@@ -11,7 +11,7 @@ app = Flask(__name__)
 def health():
     return "Bot is running"
 
-# Твой токен и ID
+# НОВЫЙ токен
 bot = telebot.TeleBot('8745020834:AAHOBXQIyVLT3TPKAKvVS2hJNNgtVyxoqJg')
 ADMIN_ID = '8549327132'
 CHANNEL_USERNAME = "@tehnoprofiLipetsk"
@@ -48,7 +48,7 @@ def start(message):
         bot.send_message(message.chat.id, "👋 Чтобы продолжить, пожалуйста, подпишитесь на наш новостной канал:", reply_markup=markup)
         return
 
-    # Приветствие с фото и упоминанием СтройБазы
+    # Приветствие (без фото, чтобы не падать)
     text = (
         "👋 <b>Добро пожаловать в «ТехноПрофи»!</b>\n\n"
         "🔨 Сервис подбора мастеров + наша <b>СтройБаза</b>!\n"
@@ -56,7 +56,7 @@ def start(message):
         "💯 Работаем быстро, качественно и с гарантией.\n\n"
         "👇 <b>Выберите действие:</b>"
     )
-    bot.send_photo(message.chat.id, photo="https://t.me/fpfpldf/2", caption=text, reply_markup=get_main_menu(), parse_mode='HTML')
+    bot.send_message(message.chat.id, text, reply_markup=get_main_menu(), parse_mode='HTML')
 
 @bot.callback_query_handler(func=lambda call: call.data == "check_sub")
 def check_sub(call):
@@ -88,7 +88,7 @@ def handle_callback(call):
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroybaza":
-        text = "🏗 <b>СтройБаза!</b>\n\n Мы продаем: поддоны, леса, кирпич, смеси. Всё по выгодным ценам!\n\nОставьте заявку, мы перезвоним!"
+        text = "🏗 <b>СтройБаза!</b>\n\nМы продаем: поддоны, леса, кирпич, смеси. Всё по выгодным ценам!\n\nОставьте заявку, мы перезвоним!"
         markup = types.InlineKeyboardMarkup()
         btn_back = types.InlineKeyboardButton("⬅️ В меню", callback_data="menu")
         markup.add(btn_back)
