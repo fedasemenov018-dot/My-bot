@@ -4,20 +4,19 @@ import os
 import threading
 from flask import Flask
 
-# Настройка Flask для Render
 app = Flask(__name__)
 
 @app.route('/')
 def health():
     return "Bot is running"
 
-# Токен и настройки
 bot = telebot.TeleBot('8745020834:AAHOBXQIyVLT3TPKAKvVS2hJNNgtVyxoqJg')
 ADMIN_ID = '8549327132'
 CHANNEL_USERNAME = "@tehnoprofiLipetsk"
 USER_TG = "@Pankovvff"
 
 user_data = {}
+pending_requests = {}
 
 def is_subscribed(user_id):
     try:
@@ -26,7 +25,6 @@ def is_subscribed(user_id):
     except:
         return False
 
-# Главное меню (кнопки в парах)
 def get_main_menu():
     markup = types.InlineKeyboardMarkup(row_width=2)
     btn1 = types.InlineKeyboardButton("📝 Оставить заявку", callback_data="zayavka")
@@ -38,7 +36,6 @@ def get_main_menu():
     markup.add(btn1, btn2, btn3, btn4, btn5, btn6)
     return markup
 
-# Меню СтройБазы
 def get_stroybaza_menu():
     markup = types.InlineKeyboardMarkup(row_width=1)
     btn1 = types.InlineKeyboardButton("🪵 Поддоны", callback_data="stroy_poddony")
@@ -59,9 +56,6 @@ def start(message):
         bot.send_message(message.chat.id, "👋 Чтобы продолжить, пожалуйста, подпишитесь на наш новостной канал:", reply_markup=markup)
         return
 
-    # Приветствие (фото отправляется отдельно, потом текст с кнопками)
-    bot.send_photo(message.chat.id, photo="https://t.me/fpfpldf/2")
-    
     text = (
         "👋 <b>Добро пожаловать в «ТехноПрофи»!</b>\n\n"
         "🔨 Сервис подбора мастеров + наша <b>СтройБаза</b>!\n"
@@ -70,6 +64,36 @@ def start(message):
         "👇 <b>Выберите действие:</b>"
     )
     bot.send_message(message.chat.id, text, reply_markup=get_main_menu(), parse_mode='HTML')
+
+@bot.message_handler(commands=['pending'])
+def show_pending(message):
+    if message.from_user.id == ADMIN_ID:
+        if pending_requests:
+            text = "📋 <b>Список заявок:</b>\n\n"
+            for user_id, data in pending_requests.items():
+                text += f"👤 <b>Имя:</b> {data['name']}\n"
+                text += f"📱 <b>Телефон:</b> {data['phone']}\n"
+                text += f"📍 <b>Адрес:</b> {data['address']}\n"
+                text += f"⏰ <b>Время:</b> {data['time']}\n"
+                text += f"🛠 <b>Услуга:</b> {data['service']}\n\n"
+            bot.send_message(message.chat.id, text, parse_mode='HTML')
+        else:
+            bot.send_message(message.chat.id, "📭 Нет активных заявок.")
+    else:
+        bot.send_message(message.chat.id, "У вас нет прав для этой команды.")
+
+@bot.message_handler(commands=['accept'])
+def accept_order(message):
+    if message.from_user.id == ADMIN_ID:
+        user_id = pending_requests.get(ADMIN_ID)
+        if user_id:
+            bot.send_message(user_id, "✅ <b>Заявка принята!</b>\n\nМы свяжемся с вами в ближайшее время!", parse_mode='HTML')
+            pending_requests.pop(ADMIN_ID, None)
+            bot.send_message(message.chat.id, "Статус заявки обновлён: <b>Заявка принята</b>", parse_mode='HTML')
+        else:
+            bot.send_message(message.chat.id, "Нет активных заявок для принятия.")
+    else:
+        bot.send_message(message.chat.id, "У вас нет прав для этой команды.")
 
 @bot.callback_query_handler(func=lambda call: call.data == "check_sub")
 def check_sub(call):
@@ -106,22 +130,25 @@ def handle_callback(call):
     elif call.data == "stroy_poddony":
         text = "🪵 <b>Поддоны:</b>\n\nМы продаем деревянные поддоны по выгодным ценам!\n\n📞 Точная цена зависит от количества.\n\nОставьте заявку, мы перезвоним!"
         markup = types.InlineKeyboardMarkup()
+        btn_request = types.InlineKeyboardButton("📝 Оставить заявку", callback_data="usluga_svoy")
         btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
-        markup.add(btn_back)
+        markup.add(btn_request, btn_back)
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroy_lesa":
         text = "🛠 <b>Леса строительные:</b>\n\nМы продаем и сдаем в аренду строительные леса!\n\n📞 Точная цена зависит от высоты и количества.\n\nОставьте заявку, мы перезвоним!"
         markup = types.InlineKeyboardMarkup()
+        btn_request = types.InlineKeyboardButton("📝 Оставить заявку", callback_data="usluga_svoy")
         btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
-        markup.add(btn_back)
+        markup.add(btn_request, btn_back)
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroy_kirpich":
         text = "🧱 <b>Кирпич и смеси:</b>\n\nМы продаем кирпич и сухие строительные смеси!\n\n📞 Точная цена зависит от количества.\n\nОставьте заявку, мы перезвоним!"
         markup = types.InlineKeyboardMarkup()
+        btn_request = types.InlineKeyboardButton("📝 Оставить заявку", callback_data="usluga_svoy")
         btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
-        markup.add(btn_back)
+        markup.add(btn_request, btn_back)
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "price":
@@ -219,6 +246,7 @@ def get_time(message):
         print(f"Ошибка при отправке статуса: {e}")
 
     try:
+        pending_requests[ADMIN_ID] = message.from_user.id
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("💬 Написать владельцу", url=f"https://t.me/{USER_TG.replace('@','')}"))
         bot.send_message(message.chat.id, f"🎉 <b>Спасибо, {name}!</b>\n\n📞 Мы свяжемся с вами в ближайшее время.\n\n💬 Если есть вопросы, пишите напрямую: {USER_TG}", reply_markup=markup, parse_mode='HTML')
