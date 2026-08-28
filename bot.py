@@ -1,7 +1,6 @@
 import telebot
 from telebot import types
 import os
-import threading
 from flask import Flask
 
 app = Flask(__name__)
@@ -122,7 +121,7 @@ def handle_callback(call):
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroy_request":
-        bot.send_message(call.message.chat.id, "📦 <b>Оставить заявку на стройматериалы!</b>\n\n1️⃣ <b>Первый вопрос:</b> Какой товар и сколько штук вам нужен? (например, 5 поддонов или 100 кирпичей)")
+        bot.send_message(call.message.chat.id, "📦 <b>Оставить заявку на стройматериалы!</b>\n\n1️⃣ <b>Первый вопрос:</b> Какой товар и сколько штук вам нужен? (например, 5 поддонов или 100 кирпичей)", parse_mode='HTML')
         user_data[call.from_user.id] = "stroy"
         bot.register_next_step_handler(call.message, ask_stroy_quantity)
 
@@ -175,25 +174,25 @@ def handle_callback(call):
 def ask_stroy_quantity(message):
     user_id = message.from_user.id
     user_data[f'{user_id}_stroy_quantity'] = message.text
-    bot.send_message(message.chat.id, "2️⃣ <b>Нужна доставка или самовывоз?</b> (Напишите: Доставка или Самовывоз)")
+    bot.send_message(message.chat.id, "2️⃣ <b>Нужна доставка или самовывоз?</b> (Напишите: Доставка или Самовывоз)", parse_mode='HTML')
     bot.register_next_step_handler(message, ask_stroy_delivery)
 
 def ask_stroy_delivery(message):
     user_id = message.from_user.id
     user_data[f'{user_id}_stroy_delivery'] = message.text
-    bot.send_message(message.chat.id, "3️⃣ <b>Когда нужен товар?</b> (Напишите дату и время, например: Завтра с 10:00)")
+    bot.send_message(message.chat.id, "3️⃣ <b>Когда нужен товар?</b> (Напишите дату и время, например: Завтра с 10:00)", parse_mode='HTML')
     bot.register_next_step_handler(message, ask_stroy_time)
 
 def ask_stroy_time(message):
     user_id = message.from_user.id
     user_data[f'{user_id}_stroy_time'] = message.text
-    bot.send_message(message.chat.id, "4️⃣ <b>Имя:</b>")
+    bot.send_message(message.chat.id, "4️⃣ <b>Имя:</b>", parse_mode='HTML')
     bot.register_next_step_handler(message, ask_stroy_name)
 
 def ask_stroy_name(message):
     user_id = message.from_user.id
     user_data[f'{user_id}_stroy_name'] = message.text
-    bot.send_message(message.chat.id, "5️⃣ <b>Номер телефона:</b>")
+    bot.send_message(message.chat.id, "5️⃣ <b>Номер телефона:</b>", parse_mode='HTML')
     bot.register_next_step_handler(message, ask_stroy_phone)
 
 def ask_stroy_phone(message):
@@ -282,6 +281,5 @@ def get_time(message):
         print(f"Ошибка при отправке клиенту: {e}")
 
 if __name__ == "__main__":
-    import threading
-    threading.Thread(target=bot.polling, kwargs={'non_stop': True}).start()
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000))) 
+    bot.polling(none_stop=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
