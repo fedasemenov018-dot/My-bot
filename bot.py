@@ -44,13 +44,6 @@ def get_stroybaza_menu():
     markup.add(btn1, btn2, btn3, btn4)
     return markup
 
-def get_stroybaza_request_menu():
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    btn1 = types.InlineKeyboardButton("📝 Оставить заявку на товар", callback_data="stroy_request")
-    btn2 = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
-    markup.add(btn1, btn2)
-    return markup
-
 @bot.message_handler(commands=['start'])
 def start(message):
     if not is_subscribed(message.from_user.id):
@@ -106,22 +99,30 @@ def handle_callback(call):
 
     elif call.data == "stroy_poddony":
         text = "🪵 <b>Поддоны:</b>\n\nМы продаем деревянные поддоны по выгодным ценам!\n\n<b>Цена: от 380 ₽ за поддон</b>\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!"
-        markup = get_stroybaza_request_menu()
+        markup = types.InlineKeyboardMarkup()
+        btn_request = types.InlineKeyboardButton("📝 Оставить заявку", callback_data="stroy_request")
+        btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
+        markup.add(btn_request, btn_back)
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroy_kirpich":
         text = "🧱 <b>Кирпич:</b>\n\nМы продаем кирпич по выгодным ценам!\n\n<b>Кирпич лицевой красный одинарный (Воротынский К.З.):</b> 15 руб/шт\n<b>Кирпич керамический одинарный лицевой красный (Керма):</b> 20 руб/шт\n<b>Кирпич лицевой пустотелый одинарный красный:</b> 23 руб/шт\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!"
-        markup = get_stroybaza_request_menu()
+        markup = types.InlineKeyboardMarkup()
+        btn_request = types.InlineKeyboardButton("📝 Оставить заявку", callback_data="stroy_request")
+        btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
+        markup.add(btn_request, btn_back)
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroy_smesi":
         text = "💊 <b>Смеси:</b>\n\nМы продаем строительные смеси по выгодным ценам!\n\n<b>Шпаклевка гипсовая для заделки швов и стыков Волма Шов 20 кг:</b> 690 ₽\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!"
-        markup = get_stroybaza_request_menu()
+        markup = types.InlineKeyboardMarkup()
+        btn_request = types.InlineKeyboardButton("📝 Оставить заявку", callback_data="stroy_request")
+        btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
+        markup.add(btn_request, btn_back)
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroy_request":
         bot.send_message(call.message.chat.id, "📦 <b>Оставить заявку на стройматериалы!</b>\n\n1️⃣ <b>Первый вопрос:</b> Какой товар и сколько штук вам нужен? (например, 5 поддонов или 100 кирпичей)")
-
         user_data[call.from_user.id] = "stroy"
         bot.register_next_step_handler(call.message, ask_stroy_quantity)
 
@@ -281,5 +282,6 @@ def get_time(message):
         print(f"Ошибка при отправке клиенту: {e}")
 
 if __name__ == "__main__":
-    bot.polling(none_stop=True)
+    import threading
+    threading.Thread(target=bot.polling, kwargs={'non_stop': True}).start()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
