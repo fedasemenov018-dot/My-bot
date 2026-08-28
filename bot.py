@@ -38,8 +38,8 @@ def get_main_menu():
 def get_stroybaza_menu():
     markup = types.InlineKeyboardMarkup(row_width=1)
     btn1 = types.InlineKeyboardButton("🪵 Поддоны", callback_data="stroy_poddony")
-    btn2 = types.InlineKeyboardButton("🛠 Леса строительные", callback_data="stroy_lesa")
-    btn3 = types.InlineKeyboardButton("🧱 Кирпич и смеси", callback_data="stroy_kirpich")
+    btn2 = types.InlineKeyboardButton("🧱 Кирпич", callback_data="stroy_kirpich")
+    btn3 = types.InlineKeyboardButton("💊 Смеси", callback_data="stroy_smesi")
     btn4 = types.InlineKeyboardButton("⬅️ В меню", callback_data="menu")
     markup.add(btn1, btn2, btn3, btn4)
     return markup
@@ -58,7 +58,7 @@ def start(message):
     text = (
         "👋 <b>Добро пожаловать в «ТехноПрофи»!</b>\n\n"
         "🔨 Сервис подбора мастеров + наша <b>СтройБаза</b>!\n"
-        "🏗 У нас вы можете купить стройматериалы: поддоны, леса, кирпич и многое другое!\n\n"
+        "🏗 У нас вы можете купить стройматериалы: поддоны, кирпич, смеси и многое другое!\n\n"
         "💯 Работаем быстро, качественно и с гарантией.\n\n"
         "👇 <b>Выберите действие:</b>"
     )
@@ -71,7 +71,7 @@ def check_sub(call):
         text = (
             "👋 <b>Добро пожаловать в «ТехноПрофи»!</b>\n\n"
             "🔨 Сервис подбора мастеров + наша <b>СтройБаза</b>!\n"
-            "🏗 У нас вы можете купить стройматериалы: поддоны, леса, кирпич и многое другое!\n\n"
+            "🏗 У нас вы можете купить стройматериалы: поддоны, кирпич, смеси и многое другое!\n\n"
             "💯 Работаем быстро, качественно и с гарантией.\n\n"
             "👇 <b>Выберите действие:</b>"
         )
@@ -89,39 +89,34 @@ def handle_callback(call):
         btn3 = types.InlineKeyboardButton("🚛 Вывоз мусора", callback_data="usluga_musor")
         btn4 = types.InlineKeyboardButton("🌿 Покос травы", callback_data="usluga_pokos")
         btn5 = types.InlineKeyboardButton("📝 Свой вариант", callback_data="usluga_svoy")
-        btn6 = types.InlineKeyboardButton("⬅️ В меню", callback_data="menu")
-        markup.add(btn1, btn2, btn3, btn4, btn5, btn6)
+        btn6 = types.InlineKeyboardButton("📦 Уборка территории", callback_data="usluga_uborka")
+        btn7 = types.InlineKeyboardButton("⬅️ В меню", callback_data="menu")
+        markup.add(btn1, btn2, btn3, btn4, btn5, btn6, btn7)
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroybaza":
         bot.edit_message_text("🏗 <b>СтройБаза!</b>\n\nВыберите, что вас интересует:", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=get_stroybaza_menu(), parse_mode='HTML')
 
     elif call.data == "stroy_poddony":
-        text = "🪵 <b>Поддоны:</b>\n\nМы продаем деревянные поддоны по выгодным ценам!\n\n📞 Точная цена зависит от количества.\n\nОставьте заявку, мы перезвоним!"
         markup = types.InlineKeyboardMarkup()
-        btn_request = types.InlineKeyboardButton("📝 Оставить заявку", callback_data="usluga_svoy")
         btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
-        markup.add(btn_request, btn_back)
-        bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
-
-    elif call.data == "stroy_lesa":
-        text = "🛠 <b>Леса строительные:</b>\n\nМы продаем и сдаем в аренду строительные леса!\n\n📞 Точная цена зависит от высоты и количества.\n\nОставьте заявку, мы перезвоним!"
-        markup = types.InlineKeyboardMarkup()
-        btn_request = types.InlineKeyboardButton("📝 Оставить заявку", callback_data="usluga_svoy")
-        btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
-        markup.add(btn_request, btn_back)
-        bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
+        markup.add(btn_back)
+        bot.send_photo(call.message.chat.id, photo="https://example.com/poddony.jpg", caption="🪵 <b>Поддоны:</b>\n\nМы продаем деревянные поддоны по выгодным ценам!\n\n<b>Цена: от 380 ₽ за поддон</b>\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!", parse_mode='HTML', reply_markup=markup)
 
     elif call.data == "stroy_kirpich":
-        text = "🧱 <b>Кирпич и смеси:</b>\n\nМы продаем кирпич и сухие строительные смеси!\n\n📞 Точная цена зависит от количества.\n\nОставьте заявку, мы перезвоним!"
         markup = types.InlineKeyboardMarkup()
-        btn_request = types.InlineKeyboardButton("📝 Оставить заявку", callback_data="usluga_svoy")
         btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
-        markup.add(btn_request, btn_back)
-        bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
+        markup.add(btn_back)
+        bot.send_photo(call.message.chat.id, photo="https://example.com/kirpich.jpg", caption="🧱 <b>Кирпич:</b>\n\nМы продаем кирпич по выгодным ценам!\n\n<b>Кирпич лицевой красный одинарный (Воротынский К.З.):</b> 15 руб/шт\n<b>Кирпич керамический одинарный лицевой красный (Керма):</b> 20 руб/шт\n<b>Кирпич лицевой пустотелый одинарный красный:</b> 23 руб/шт\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!", parse_mode='HTML', reply_markup=markup)
+
+    elif call.data == "stroy_smesi":
+        markup = types.InlineKeyboardMarkup()
+        btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
+        markup.add(btn_back)
+        bot.send_photo(call.message.chat.id, photo="https://example.com/smesi.jpg", caption="💊 <b>Смеси:</b>\n\nМы продаем строительные смеси по выгодным ценам!\n\n<b>Шпаклевка гипсовая для заделки швов и стыков Волма Шов 20 кг:</b> 690 ₽\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!", parse_mode='HTML', reply_markup=markup)
 
     elif call.data == "price":
-        text = "💰 <b>Наши цены:</b>\n\n🛠 Разнорабочие — от 500 ₽/час\n🔨 Демонтаж — от 800 ₽/м²\n🚛 Вывоз мусора — от 3000 ₽/рейс\n🌿 Покос травы — от 1000 ₽/сотка\n\n📞 Точная стоимость зависит от объема работ. Свяжитесь с нами!"
+        text = "💰 <b>Наши цены:</b>\n\n🛠 Разнорабочие — от 500 ₽/час\n🔨 Демонтаж — от 300 ₽/м²\n🚛 Вывоз мусора — от 3000 ₽/рейс\n🌿 Покос травы — от 500 ₽/сотка\n📦 Уборка территории от листвы — от 200 ₽/м²\n\n📞 Точная стоимость зависит от объема работ. Свяжитесь с нами!"
         markup = types.InlineKeyboardMarkup()
         btn_back = types.InlineKeyboardButton("⬅️ В меню", callback_data="menu")
         markup.add(btn_back)
@@ -158,7 +153,8 @@ def handle_callback(call):
             "usluga_demontazh": "🔨 Демонтаж",
             "usluga_musor": "🚛 Вывоз мусора",
             "usluga_pokos": "🌿 Покос травы",
-            "usluga_svoy": "📝 Свой вариант"
+            "usluga_svoy": "📝 Свой вариант",
+            "usluga_uborka": "📦 Уборка территории"
         }
         service = service_map.get(call.data, "Выбранная услуга")
         user_data[call.from_user.id] = service
