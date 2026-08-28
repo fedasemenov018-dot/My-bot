@@ -186,4 +186,99 @@ def ask_stroy_delivery(message):
 def ask_stroy_time(message):
     user_id = message.from_user.id
     user_data[f'{user_id}_stroy_time'] = message.text
-    bot.send_message(message.chat.id, "4️⃣ <b>Имя
+    bot.send_message(message.chat.id, "4️⃣ <b>Имя:</b>")
+    bot.register_next_step_handler(message, ask_stroy_name)
+
+def ask_stroy_name(message):
+    user_id = message.from_user.id
+    user_data[f'{user_id}_stroy_name'] = message.text
+    bot.send_message(message.chat.id, "5️⃣ <b>Номер телефона:</b>")
+    bot.register_next_step_handler(message, ask_stroy_phone)
+
+def ask_stroy_phone(message):
+    user_id = message.from_user.id
+    phone = message.text
+    user_data[f'{user_id}_stroy_phone'] = phone
+
+    quantity = user_data.get(f'{user_id}_stroy_quantity', "Не указано")
+    delivery = user_data.get(f'{user_id}_stroy_delivery', "Не указано")
+    time = user_data.get(f'{user_id}_stroy_time', "Не указано")
+    name = user_data.get(f'{user_id}_stroy_name', "Не указано")
+
+    admin_text = (
+        f"🏗 <b>ЗАЯВКА НА СТРОЙМАТЕРИАЛЫ!</b>\n\n"
+        f"📦 <b>Количество и товар:</b> {quantity}\n"
+        f"🚚 <b>Доставка или самовывоз:</b> {delivery}\n"
+        f"⏰ <b>Сроки:</b> {time}\n"
+        f"👤 <b>Имя:</b> {name}\n"
+        f"📱 <b>Телефон:</b> {phone}"
+    )
+
+    try:
+        bot.send_message(ADMIN_ID, admin_text, parse_mode='HTML')
+    except Exception as e:
+        print(f"Ошибка при отправке админу: {e}")
+
+    try:
+        bot.send_message(message.chat.id, f"📨 <b>Заявка на стройматериалы отправлена!</b>\n\nМы свяжемся с вами в ближайшее время!", parse_mode='HTML')
+    except Exception as e:
+        print(f"Ошибка при отправке статуса: {e}")
+
+def get_name(message):
+    user_id = message.from_user.id
+    user_data[f'{user_id}_name'] = message.text
+    bot.send_message(message.chat.id, "📱 Отлично! Теперь напишите ваш <b>Номер телефона</b>:", parse_mode='HTML')
+    bot.register_next_step_handler(message, get_phone)
+
+def get_phone(message):
+    user_id = message.from_user.id
+    phone = message.text
+    user_data[f'{user_id}_phone'] = phone
+    bot.send_message(message.chat.id, "📍 <b>Отлично! Теперь напишите ваш Адрес</b> (или населенный пункт, где нужна работа):", parse_mode='HTML')
+    bot.register_next_step_handler(message, get_address)
+
+def get_address(message):
+    user_id = message.from_user.id
+    address = message.text
+    user_data[f'{user_id}_address'] = address
+    bot.send_message(message.chat.id, "⏰ <b>Когда вам удобно?</b> (Напишите дату и время, например: завтра с 10:00):", parse_mode='HTML')
+    bot.register_next_step_handler(message, get_time)
+
+def get_time(message):
+    user_id = message.from_user.id
+    time = message.text
+    user_data[f'{user_id}_time'] = time
+
+    name = user_data.get(f'{user_id}_name', "Не указано")
+    phone = user_data.get(f'{user_id}_phone', "Не указано")
+    service = user_data.get(user_id, "Не указано")
+    address = user_data.get(f'{user_id}_address', "Не указано")
+
+    admin_text = (
+        f"🔥 <b>НОВАЯ ЗАЯВКА!</b>\n\n"
+        f"🛠 <b>Услуга:</b> {service}\n"
+        f"👤 <b>Имя:</b> {name}\n"
+        f"📱 <b>Телефон:</b> {phone}\n"
+        f"📍 <b>Адрес:</b> {address}\n"
+        f"⏰ <b>Время:</b> {time}"
+    )
+
+    try:
+        bot.send_message(ADMIN_ID, admin_text, parse_mode='HTML')
+    except Exception as e:
+        print(f"Ошибка при отправке админу: {e}")
+
+    try:
+        bot.send_message(message.chat.id, f"📨 <b>Заявка отправлена!</b>\n\nЗаявка находится на рассмотрении. Мы скоро свяжемся с вами!", parse_mode='HTML')
+    except Exception as e:
+        print(f"Ошибка при отправке статуса: {e}")
+
+    try:
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton("💬 Написать владельцу", url=f"https://t.me/{USER_TG.replace('@','')}"))
+        bot.send_message(message.chat.id, f"🎉 <b>Спасибо, {name}!</b>\n\n📞 Мы свяжемся с вами в ближайшее время.\n\n💬 Если есть вопросы, пишите напрямую: {USER_TG}", reply_markup=markup, parse_mode='HTML')
+    except Exception as e:
+        print(f"Ошибка при отправке клиенту: {e}")
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
