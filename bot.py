@@ -98,22 +98,25 @@ def handle_callback(call):
         bot.edit_message_text("🏗 <b>СтройБаза!</b>\n\nВыберите, что вас интересует:", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=get_stroybaza_menu(), parse_mode='HTML')
 
     elif call.data == "stroy_poddony":
+        text = "🪵 <b>Поддоны:</b>\n\nМы продаем деревянные поддоны по выгодным ценам!\n\n<b>Цена: от 380 ₽ за поддон</b>\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!"
         markup = types.InlineKeyboardMarkup()
         btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
         markup.add(btn_back)
-        bot.send_photo(call.message.chat.id, photo="https://example.com/poddony.jpg", caption="🪵 <b>Поддоны:</b>\n\nМы продаем деревянные поддоны по выгодным ценам!\n\n<b>Цена: от 380 ₽ за поддон</b>\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!", parse_mode='HTML', reply_markup=markup)
+        bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroy_kirpich":
+        text = "🧱 <b>Кирпич:</b>\n\nМы продаем кирпич по выгодным ценам!\n\n<b>Кирпич лицевой красный одинарный (Воротынский К.З.):</b> 15 руб/шт\n<b>Кирпич керамический одинарный лицевой красный (Керма):</b> 20 руб/шт\n<b>Кирпич лицевой пустотелый одинарный красный:</b> 23 руб/шт\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!"
         markup = types.InlineKeyboardMarkup()
         btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
         markup.add(btn_back)
-        bot.send_photo(call.message.chat.id, photo="https://example.com/kirpich.jpg", caption="🧱 <b>Кирпич:</b>\n\nМы продаем кирпич по выгодным ценам!\n\n<b>Кирпич лицевой красный одинарный (Воротынский К.З.):</b> 15 руб/шт\n<b>Кирпич керамический одинарный лицевой красный (Керма):</b> 20 руб/шт\n<b>Кирпич лицевой пустотелый одинарный красный:</b> 23 руб/шт\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!", parse_mode='HTML', reply_markup=markup)
+        bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroy_smesi":
+        text = "💊 <b>Смеси:</b>\n\nМы продаем строительные смеси по выгодным ценам!\n\n<b>Шпаклевка гипсовая для заделки швов и стыков Волма Шов 20 кг:</b> 690 ₽\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!"
         markup = types.InlineKeyboardMarkup()
         btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
         markup.add(btn_back)
-        bot.send_photo(call.message.chat.id, photo="https://example.com/smesi.jpg", caption="💊 <b>Смеси:</b>\n\nМы продаем строительные смеси по выгодным ценам!\n\n<b>Шпаклевка гипсовая для заделки швов и стыков Волма Шов 20 кг:</b> 690 ₽\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!", parse_mode='HTML', reply_markup=markup)
+        bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "price":
         text = "💰 <b>Наши цены:</b>\n\n🛠 Разнорабочие — от 500 ₽/час\n🔨 Демонтаж — от 300 ₽/м²\n🚛 Вывоз мусора — от 3000 ₽/рейс\n🌿 Покос травы — от 500 ₽/сотка\n📦 Уборка территории от листвы — от 200 ₽/м²\n\n📞 Точная стоимость зависит от объема работ. Свяжитесь с нами!"
@@ -218,6 +221,4 @@ def get_time(message):
         print(f"Ошибка при отправке клиенту: {e}")
 
 if __name__ == "__main__":
-    import threading
-    threading.Thread(target=bot.polling, kwargs={'non_stop': True}).start()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
