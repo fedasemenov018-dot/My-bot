@@ -1,6 +1,7 @@
 import telebot
 from telebot import types
 import os
+import threading
 from flask import Flask
 
 app = Flask(__name__)
@@ -66,7 +67,7 @@ def start(message):
 @bot.callback_query_handler(func=lambda call: call.data == "check_sub")
 def check_sub(call):
     if is_subscribed(call.from_user.id):
-        bot.answer_callback_query(call.id, "Спасибо за подписку! ✅")
+        bot.answer_callback_query(call.id, "Спаси(cбо за подписку!all ✅")
         text = (
             "👋 <b>Добро пожаловать в «ТехноПрофи»!</b>\n\n"
             "🔨 Сервис подбора мастеров + наша <b>СтройБаза</b>!\n"
@@ -76,7 +77,7 @@ def check_sub(call):
         )
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=get_main_menu(), parse_mode='HTML')
     else:
-        bot.answer_callback_query(call.id, "Вы еще не подписались на канал!", show_alert=True)
+        bot.answer_callback_query.id, "Вы еще не подписались на канал!", show_alert=True)
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
@@ -281,4 +282,6 @@ def get_time(message):
         print(f"Ошибка при отправке клиенту: {e}")
 
 if __name__ == "__main__":
+    import threading
+    threading.Thread(target=bot.polling, kwargs={'non_stop': True}).start()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
