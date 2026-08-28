@@ -44,6 +44,13 @@ def get_stroybaza_menu():
     markup.add(btn1, btn2, btn3, btn4)
     return markup
 
+def get_stroybaza_request_menu():
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    btn1 = types.InlineKeyboardButton("📝 Оставить заявку на товар", callback_data="stroy_request")
+    btn2 = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
+    markup.add(btn1, btn2)
+    return markup
+
 @bot.message_handler(commands=['start'])
 def start(message):
     if not is_subscribed(message.from_user.id):
@@ -99,24 +106,24 @@ def handle_callback(call):
 
     elif call.data == "stroy_poddony":
         text = "🪵 <b>Поддоны:</b>\n\nМы продаем деревянные поддоны по выгодным ценам!\n\n<b>Цена: от 380 ₽ за поддон</b>\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!"
-        markup = types.InlineKeyboardMarkup()
-        btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
-        markup.add(btn_back)
+        markup = get_stroybaza_request_menu()
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroy_kirpich":
         text = "🧱 <b>Кирпич:</b>\n\nМы продаем кирпич по выгодным ценам!\n\n<b>Кирпич лицевой красный одинарный (Воротынский К.З.):</b> 15 руб/шт\n<b>Кирпич керамический одинарный лицевой красный (Керма):</b> 20 руб/шт\n<b>Кирпич лицевой пустотелый одинарный красный:</b> 23 руб/шт\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!"
-        markup = types.InlineKeyboardMarkup()
-        btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
-        markup.add(btn_back)
+        markup = get_stroybaza_request_menu()
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroy_smesi":
         text = "💊 <b>Смеси:</b>\n\nМы продаем строительные смеси по выгодным ценам!\n\n<b>Шпаклевка гипсовая для заделки швов и стыков Волма Шов 20 кг:</b> 690 ₽\n\n📞 Точная цена зависит от количества. Если есть вопросы, напишите нам!"
-        markup = types.InlineKeyboardMarkup()
-        btn_back = types.InlineKeyboardButton("⬅️ В СтройБазу", callback_data="stroybaza")
-        markup.add(btn_back)
+        markup = get_stroybaza_request_menu()
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
+
+    elif call.data == "stroy_request":
+        bot.send_message(call.message.chat.id, "📦 <b>Оставить заявку на стройматериалы!</b>\n\n1️⃣ <b>Первый вопрос:</b> Какой товар и сколько штук вам нужен? (например, 5 поддонов или 100 кирпичей)")
+
+        user_data[call.from_user.id] = "stroy"
+        bot.register_next_step_handler(call.message, ask_stroy_quantity)
 
     elif call.data == "price":
         text = "💰 <b>Наши цены:</b>\n\n🛠 Разнорабочие — от 500 ₽/час\n🔨 Демонтаж — от 300 ₽/м²\n🚛 Вывоз мусора — от 3000 ₽/рейс\n🌿 Покос травы — от 500 ₽/сотка\n📦 Уборка территории от листвы — от 200 ₽/м²\n\n📞 Точная стоимость зависит от объема работ. Свяжитесь с нами!"
@@ -163,6 +170,59 @@ def handle_callback(call):
         user_data[call.from_user.id] = service
         bot.edit_message_text(f"✅ Отлично! Вы выбрали: <b>{service}</b>\n\n✍️ Теперь напишите ваше <b>Имя</b>:", chat_id=call.message.chat.id, message_id=call.message.message_id, parse_mode='HTML')
         bot.register_next_step_handler(call.message, get_name)
+
+def ask_stroy_quantity(message):
+    user_id = message.from_user.id
+    user_data[f'{user_id}_stroy_quantity'] = message.text
+    bot.send_message(message.chat.id, "2️⃣ <b>Нужна доставка или самовывоз?</b> (Напишите: Доставка или Самовывоз)")
+    bot.register_next_step_handler(message, ask_stroy_delivery)
+
+def ask_stroy_delivery(message):
+    user_id = message.from_user.id
+    user_data[f'{user_id}_stroy_delivery'] = message.text
+    bot.send_message(message.chat.id, "3️⃣ <b>Когда нужен товар?</b> (Напишите дату и время, например: Завтра с 10:00)")
+    bot.register_next_step_handler(message, ask_stroy_time)
+
+def ask_stroy_time(message):
+    user_id = message.from_user.id
+    user_data[f'{user_id}_stroy_time'] = message.text
+    bot.send_message(message.chat.id, "4️⃣ <b>Имя:</b>")
+    bot.register_next_step_handler(message, ask_stroy_name)
+
+def ask_stroy_name(message):
+    user_id = message.from_user.id
+    user_data[f'{user_id}_stroy_name'] = message.text
+    bot.send_message(message.chat.id, "5️⃣ <b>Номер телефона:</b>")
+    bot.register_next_step_handler(message, ask_stroy_phone)
+
+def ask_stroy_phone(message):
+    user_id = message.from_user.id
+    phone = message.text
+    user_data[f'{user_id}_stroy_phone'] = phone
+
+    quantity = user_data.get(f'{user_id}_stroy_quantity', "Не указано")
+    delivery = user_data.get(f'{user_id}_stroy_delivery', "Не указано")
+    time = user_data.get(f'{user_id}_stroy_time', "Не указано")
+    name = user_data.get(f'{user_id}_stroy_name', "Не указано")
+
+    admin_text = (
+        f"🏗 <b>ЗАЯВКА НА СТРОЙМАТЕРИАЛЫ!</b>\n\n"
+        f"📦 <b>Количество и товар:</b> {quantity}\n"
+        f"🚚 <b>Доставка или самовывоз:</b> {delivery}\n"
+        f"⏰ <b>Сроки:</b> {time}\n"
+        f"👤 <b>Имя:</b> {name}\n"
+        f"📱 <b>Телефон:</b> {phone}"
+    )
+
+    try:
+        bot.send_message(ADMIN_ID, admin_text, parse_mode='HTML')
+    except Exception as e:
+        print(f"Ошибка при отправке админу: {e}")
+
+    try:
+        bot.send_message(message.chat.id, f"📨 <b>Заявка на стройматериалы отправлена!</b>\n\nМы свяжемся с вами в ближайшее время!", parse_mode='HTML')
+    except Exception as e:
+        print(f"Ошибка при отправке статуса: {e}")
 
 def get_name(message):
     user_id = message.from_user.id
