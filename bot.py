@@ -279,7 +279,5 @@ def get_time(message):
         bot.send_message(message.chat.id, f"🎉 <b>Спасибо, {name}!</b>\n\n📞 Мы свяжемся с вами в ближайшее время.\n\n💬 Если есть вопросы, пишите напрямую: {USER_TG}", reply_markup=markup, parse_mode='HTML')
     except Exception as e:
         print(f"Ошибка при отправке клиенту: {e}")
-
 if __name__ == "__main__":
-    bot.polling(none_stop=True)
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
