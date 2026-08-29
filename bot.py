@@ -13,7 +13,7 @@ def health():
 bot = telebot.TeleBot('8745020834:AAHOBXQIyVLT3TPKAKvVS2hJNNgtVyxoqJg')
 ADMIN_ID = 8549327132
 CHANNEL_USERNAME = "@tehnoprofiLipetsk"
-USER_TG = "@Pankovvff"
+USER_TG = "@Tehnoprofff"
 
 user_data = {}
 
