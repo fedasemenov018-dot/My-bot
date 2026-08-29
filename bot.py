@@ -3,7 +3,7 @@ from telebot import types
 import os
 from flask import Flask
 
-app = Flask(__name__)
+app = Flask(__name____)
 
 @app.route('/')
 def health():
@@ -17,7 +17,6 @@ USER_TG = "@Tehnoproff"
 user_data = {}
 pending_requests = {}
 
-# Цены за единицу
 PRICES = {
     "usluga_raznorab": {"name": "🛠 Разнорабочие", "price": 500, "unit": "час"},
     "usluga_demontazh": {"name": "🔨 Демонтаж", "price": 300, "unit": "м²"},
