@@ -1,6 +1,7 @@
 import telebot
 from telebot import types
 import os
+import threading
 from flask import Flask
 
 app = Flask(__name__)
@@ -149,7 +150,7 @@ def handle_callback(call):
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "kontakty":
-        text = "☎️ <b>Наши контакты:</b>\n\n📞 +7 (950) 807-57-88\n🕘 Мы на связи с 9:00 до 21:00!\n\n💬 Наш Telegram: @Tehnoproff"
+        text = "☎️ <b>Наши контакты:</b>\n\n📞 +7 (950) 807-57-88\n🕘 Мы на связи с 9:00 до 21:00!\n\n💬 Наш Telegram: @Tehnoprofff"
         markup = types.InlineKeyboardMarkup()
         btn_back = types.InlineKeyboardButton("⬅️ В меню", callback_data="menu")
         markup.add(btn_back)
@@ -251,5 +252,6 @@ def get_time(message):
         print(f"Ошибка при отправке клиенту: {e}")
 
 if __name__ == "__main__":
-    bot.polling(none_stop=True)
+    import threading
+    threading.Thread(target=bot.polling, kwargs={'non_stop': True}).start()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
