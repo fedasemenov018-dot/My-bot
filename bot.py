@@ -13,7 +13,7 @@ def health():
 bot = telebot.TeleBot('8745020834:AAHOBXQIyVLT3TPKAKvVS2hJNNgtVyxoqJg')
 ADMIN_ID = 8549327132
 CHANNEL_USERNAME = "@tehnoprofiLipetsk"
-USER_TG = "@Tehnoprofff"
+USER_TG = "@Tehnoproff"
 
 user_data = {}
 
@@ -141,7 +141,7 @@ def handle_callback(call):
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "kontakty":
-        text = "☎️ <b>Наши контакты:</b>\n\n📞 +7 (950) 807-57-88\n🕘 Мы на связи с 9:00 до 21:00!\n\n💬 Наш Telegram: @Pankovvff"
+        text = "☎️ <b>Наши контакты:</b>\n\n📞 +7 (950) 807-57-88\n🕘 Мы на связи с 9:00 до 21:00!\n\n💬 Наш Telegram: @Tehnoproff"
         markup = types.InlineKeyboardMarkup()
         btn_back = types.InlineKeyboardButton("⬅️ В меню", callback_data="menu")
         markup.add(btn_back)
