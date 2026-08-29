@@ -1,9 +1,10 @@
 import telebot
 from telebot import types
 import os
+import threading
 from flask import Flask
 
-app = Flask(__name____)
+app = Flask(__name__)
 
 @app.route('/')
 def health():
@@ -15,7 +16,6 @@ CHANNEL_USERNAME = "@tehnoprofiLipetsk"
 USER_TG = "@Tehnoproff"
 
 user_data = {}
-pending_requests = {}
 
 PRICES = {
     "usluga_raznorab": {"name": "🛠 Разнорабочие", "price": 500, "unit": "час"},
@@ -72,19 +72,6 @@ def start(message):
         "👇 <b>Выберите действие:</b>"
     )
     bot.send_message(message.chat.id, text, reply_markup=get_main_menu(), parse_mode='HTML')
-
-@bot.message_handler(commands=['accept'])
-def accept_order(message):
-    if message.from_user.id == ADMIN_ID:
-        user_id = pending_requests.get(ADMIN_ID)
-        if user_id:
-            bot.send_message(user_id, "✅ <b>Заявка принята!</b>\n\nМы свяжемся с вами в ближайшее время!", parse_mode='HTML')
-            pending_requests.pop(ADMIN_ID, None)
-            bot.send_message(message.chat.id, "Статус заявки обновлён: <b>Заявка принята</b>", parse_mode='HTML')
-        else:
-            bot.send_message(message.chat.id, "Нет активных заявок для принятия.")
-    else:
-        bot.send_message(message.chat.id, "У вас нет прав для этой команды.")
 
 @bot.callback_query_handler(func=lambda call: call.data == "check_sub")
 def check_sub(call):
@@ -258,7 +245,6 @@ def get_time(message):
         print(f"Ошибка при отправке статуса: {e}")
 
     try:
-        pending_requests[ADMIN_ID] = message.from_user.id
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("💬 Написать владельцу", url=f"https://t.me/{USER_TG.replace('@','')}"))
         bot.send_message(message.chat.id, f"🎉 <b>Спасибо, {name}!</b>\n\n📞 Мы свяжемся с вами в ближайшее время.\n\n💬 Если есть вопросы, пишите напрямую: {USER_TG}", reply_markup=markup, parse_mode='HTML')
@@ -266,5 +252,6 @@ def get_time(message):
         print(f"Ошибка при отправке клиенту: {e}")
 
 if __name__ == "__main__":
-    bot.polling(none_stop=True)
+    import threading
+    threading.Thread(target=bot.polling, kwargs={'non_stop': True}).start()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
