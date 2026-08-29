@@ -15,6 +15,7 @@ CHANNEL_USERNAME = "@tehnoprofiLipetsk"
 USER_TG = "@Tehnoproff"
 
 user_data = {}
+pending_requests = {}
 
 def is_subscribed(user_id):
     try:
@@ -62,6 +63,19 @@ def start(message):
         "👇 <b>Выберите действие:</b>"
     )
     bot.send_message(message.chat.id, text, reply_markup=get_main_menu(), parse_mode='HTML')
+
+@bot.message_handler(commands=['accept'])
+def accept_order(message):
+    if message.from_user.id == ADMIN_ID:
+        user_id = pending_requests.get(ADMIN_ID)
+        if user_id:
+            bot.send_message(user_id, "✅ <b>Заявка принята!</b>\n\nМы свяжемся с вами в ближайшее время!", parse_mode='HTML')
+            pending_requests.pop(ADMIN_ID, None)
+            bot.send_message(message.chat.id, "Статус заявки обновлён: <b>Заявка принята</b>", parse_mode='HTML')
+        else:
+            bot.send_message(message.chat.id, "Нет активных заявок для принятия.")
+    else:
+        bot.send_message(message.chat.id, "У вас нет прав для этой команды.")
 
 @bot.callback_query_handler(func=lambda call: call.data == "check_sub")
 def check_sub(call):
