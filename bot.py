@@ -1,7 +1,6 @@
 import telebot
 from telebot import types
 import os
-import threading
 from flask import Flask
 
 app = Flask(__name__)
@@ -17,6 +16,16 @@ USER_TG = "@Tehnoproff"
 
 user_data = {}
 pending_requests = {}
+
+# Цены за единицу
+PRICES = {
+    "usluga_raznorab": {"name": "🛠 Разнорабочие", "price": 500, "unit": "час"},
+    "usluga_demontazh": {"name": "🔨 Демонтаж", "price": 300, "unit": "м²"},
+    "usluga_musor": {"name": "🚛 Вывоз мусора", "price": 3000, "unit": "рейс"},
+    "usluga_pokos": {"name": "🌿 Покос травы", "price": 500, "unit": "сотка"},
+    "usluga_uborka": {"name": "📦 Уборка территории", "price": 200, "unit": "м²"},
+    "usluga_svoy": {"name": "📝 Свой вариант", "price": 0, "unit": "шт"},
+}
 
 def is_subscribed(user_id):
     try:
@@ -173,71 +182,27 @@ def handle_callback(call):
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=get_main_menu(), parse_mode='HTML')
 
     elif call.data.startswith("usluga_"):
-        service_map = {
-            "usluga_raznorab": "🛠 Разнорабочие",
-            "usluga_demontazh": "🔨 Демонтаж",
-            "usluga_musor": "🚛 Вывоз мусора",
-            "usluga_pokos": "🌿 Покос травы",
-            "usluga_svoy": "📝 Свой вариант",
-            "usluga_uborka": "📦 Уборка территории"
-        }
-        service = service_map.get(call.data, "Выбранная услуга")
-        user_data[call.from_user.id] = service
-        bot.edit_message_text(f"✅ Отлично! Вы выбрали: <b>{service}</b>\n\n✍️ Теперь напишите ваше <b>Имя</b>:", chat_id=call.message.chat.id, message_id=call.message.message_id, parse_mode='HTML')
-        bot.register_next_step_handler(call.message, get_name)
+        service = PRICES.get(call.data, {"name": "📝 Свой вариант", "price": 0, "unit": "шт"})
+        user_data[call.from_user.id] = call.data
+        bot.edit_message_text(f"✅ Отлично! Вы выбрали: <b>{service['name']}</b>\n\nСтоимость: <b>{service['price']} ₽</b> за {service['unit']}\n\n✍️ <b>Теперь напишите количество:</b> (например, 5)", chat_id=call.message.chat.id, message_id=call.message.message_id, parse_mode='HTML')
+        bot.register_next_step_handler(call.message, ask_quantity)
 
-def ask_stroy_quantity(message):
+def ask_quantity(message):
     user_id = message.from_user.id
-    user_data[f'{user_id}_stroy_quantity'] = message.text
-    bot.send_message(message.chat.id, "2️⃣ <b>Нужна доставка или самовывоз?</b> (Напишите: Доставка или Самовывоз)", parse_mode='HTML')
-    bot.register_next_step_handler(message, ask_stroy_delivery)
-
-def ask_stroy_delivery(message):
-    user_id = message.from_user.id
-    user_data[f'{user_id}_stroy_delivery'] = message.text
-    bot.send_message(message.chat.id, "3️⃣ <b>Когда нужен товар?</b> (Напишите дату и время, например: Завтра с 10:00)", parse_mode='HTML')
-    bot.register_next_step_handler(message, ask_stroy_time)
-
-def ask_stroy_time(message):
-    user_id = message.from_user.id
-    user_data[f'{user_id}_stroy_time'] = message.text
-    bot.send_message(message.chat.id, "4️⃣ <b>Имя:</b>", parse_mode='HTML')
-    bot.register_next_step_handler(message, ask_stroy_name)
-
-def ask_stroy_name(message):
-    user_id = message.from_user.id
-    user_data[f'{user_id}_stroy_name'] = message.text
-    bot.send_message(message.chat.id, "5️⃣ <b>Номер телефона:</b>", parse_mode='HTML')
-    bot.register_next_step_handler(message, ask_stroy_phone)
-
-def ask_stroy_phone(message):
-    user_id = message.from_user.id
-    phone = message.text
-    user_data[f'{user_id}_stroy_phone'] = phone
-
-    quantity = user_data.get(f'{user_id}_stroy_quantity', "Не указано")
-    delivery = user_data.get(f'{user_id}_stroy_delivery', "Не указано")
-    time = user_data.get(f'{user_id}_stroy_time', "Не указано")
-    name = user_data.get(f'{user_id}_stroy_name', "Не указано")
-
-    admin_text = (
-        f"🏗 <b>ЗАЯВКА НА СТРОЙМАТЕРИАЛЫ!</b>\n\n"
-        f"📦 <b>Количество и товар:</b> {quantity}\n"
-        f"🚚 <b>Доставка или самовывоз:</b> {delivery}\n"
-        f"⏰ <b>Сроки:</b> {time}\n"
-        f"👤 <b>Имя:</b> {name}\n"
-        f"📱 <b>Телефон:</b> {phone}"
-    )
-
     try:
-        bot.send_message(ADMIN_ID, admin_text, parse_mode='HTML')
-    except Exception as e:
-        print(f"Ошибка при отправке админу: {e}")
+        quantity = int(message.text)
+        service_id = user_data.get(user_id)
+        service = PRICES.get(service_id, {"name": "📝 Свой вариант", "price": 0, "unit": "шт"})
+        total = quantity * service['price']
 
-    try:
-        bot.send_message(message.chat.id, f"📨 <b>Заявка на стройматериалы отправлена!</b>\n\nМы свяжемся с вами в ближайшее время!", parse_mode='HTML')
-    except Exception as e:
-        print(f"Ошибка при отправке статуса: {e}")
+        user_data[f'{user_id}_quantity'] = quantity
+        user_data[f'{user_id}_total'] = total
+
+        bot.send_message(message.chat.id, f"💡 <b>Примерный расчет:</b>\n\n{quantity} {service['unit']} × {service['price']} ₽ = <b>{total} ₽</b>\n\n✍️ <b>Теперь напишите ваше <b>Имя</b>:</b>", parse_mode='HTML')
+        bot.register_next_step_handler(message, get_name)
+    except:
+        bot.send_message(message.chat.id, "❌ Это не число! Напишите цифрами (например, 5)", parse_mode='HTML')
+        bot.register_next_step_handler(message, ask_quantity)
 
 def get_name(message):
     user_id = message.from_user.id
@@ -266,12 +231,17 @@ def get_time(message):
 
     name = user_data.get(f'{user_id}_name', "Не указано")
     phone = user_data.get(f'{user_id}_phone', "Не указано")
-    service = user_data.get(user_id, "Не указано")
+    service_id = user_data.get(user_id, "usluga_svoy")
+    service = PRICES.get(service_id, {"name": "📝 Свой вариант", "price": 0, "unit": "шт"})
+    quantity = user_data.get(f'{user_id}_quantity', 0)
+    total = user_data.get(f'{user_id}_total', 0)
     address = user_data.get(f'{user_id}_address', "Не указано")
 
     admin_text = (
         f"🔥 <b>НОВАЯ ЗАЯВКА!</b>\n\n"
-        f"🛠 <b>Услуга:</b> {service}\n"
+        f"🛠 <b>Услуга:</b> {service['name']}\n"
+        f"📦 <b>Количество:</b> {quantity} {service['unit']}\n"
+        f"💰 <b>Цена:</b> {total} ₽\n"
         f"👤 <b>Имя:</b> {name}\n"
         f"📱 <b>Телефон:</b> {phone}\n"
         f"📍 <b>Адрес:</b> {address}\n"
@@ -289,6 +259,7 @@ def get_time(message):
         print(f"Ошибка при отправке статуса: {e}")
 
     try:
+        pending_requests[ADMIN_ID] = message.from_user.id
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("💬 Написать владельцу", url=f"https://t.me/{USER_TG.replace('@','')}"))
         bot.send_message(message.chat.id, f"🎉 <b>Спасибо, {name}!</b>\n\n📞 Мы свяжемся с вами в ближайшее время.\n\n💬 Если есть вопросы, пишите напрямую: {USER_TG}", reply_markup=markup, parse_mode='HTML')
@@ -296,6 +267,5 @@ def get_time(message):
         print(f"Ошибка при отправке клиенту: {e}")
 
 if __name__ == "__main__":
-    import threading
-    threading.Thread(target=bot.polling, kwargs={'non_stop': True}).start()
+    bot.polling(none_stop=True)
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
