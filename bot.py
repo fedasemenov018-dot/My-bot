@@ -1,7 +1,6 @@
 import telebot
 from telebot import types
 import os
-import threading
 from flask import Flask
 
 app = Flask(__name__)
@@ -19,6 +18,7 @@ user_data = {}
 
 PRICES = {
     "usluga_raznorab": {"name": "🛠 Разнорабочие", "price": 500, "unit": "час"},
+    "usluga_gruzchiki": {"name": "🛠 Грузчики", "price": 400, "unit": "час"},
     "usluga_demontazh": {"name": "🔨 Демонтаж", "price": 300, "unit": "м²"},
     "usluga_musor": {"name": "🚛 Вывоз мусора", "price": 3000, "unit": "рейс"},
     "usluga_pokos": {"name": "🌿 Покос травы", "price": 500, "unit": "сотка"},
@@ -94,13 +94,14 @@ def handle_callback(call):
         text = "🧰 <b>Какие услуги вам нужны?</b>\n\nВыберите вариант из списка:"
         markup = types.InlineKeyboardMarkup(row_width=2)
         btn1 = types.InlineKeyboardButton("🛠 Разнорабочие", callback_data="usluga_raznorab")
-        btn2 = types.InlineKeyboardButton("🔨 Демонтаж", callback_data="usluga_demontazh")
-        btn3 = types.InlineKeyboardButton("🚛 Вывоз мусора", callback_data="usluga_musor")
-        btn4 = types.InlineKeyboardButton("🌿 Покос травы", callback_data="usluga_pokos")
-        btn5 = types.InlineKeyboardButton("📝 Свой вариант", callback_data="usluga_svoy")
-        btn6 = types.InlineKeyboardButton("📦 Уборка территории", callback_data="usluga_uborka")
-        btn7 = types.InlineKeyboardButton("⬅️ В меню", callback_data="menu")
-        markup.add(btn1, btn2, btn3, btn4, btn5, btn6, btn7)
+        btn2 = types.InlineKeyboardButton("🛠 Грузчики", callback_data="usluga_gruzchiki")
+        btn3 = types.InlineKeyboardButton("🔨 Демонтаж", callback_data="usluga_demontazh")
+        btn4 = types.InlineKeyboardButton("🚛 Вывоз мусора", callback_data="usluga_musor")
+        btn5 = types.InlineKeyboardButton("🌿 Покос травы", callback_data="usluga_pokos")
+        btn6 = types.InlineKeyboardButton("📝 Свой вариант", callback_data="usluga_svoy")
+        btn7 = types.InlineKeyboardButton("📦 Уборка территории", callback_data="usluga_uborka")
+        btn8 = types.InlineKeyboardButton("⬅️ В меню", callback_data="menu")
+        markup.add(btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8)
         bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode='HTML')
 
     elif call.data == "stroybaza":
@@ -136,7 +137,7 @@ def handle_callback(call):
         bot.register_next_step_handler(call.message, ask_stroy_quantity)
 
     elif call.data == "price":
-        text = "💰 <b>Наши цены:</b>\n\n🛠 Разнорабочие — от 500 ₽/час\n🔨 Демонтаж — от 300 ₽/м²\n🚛 Вывоз мусора — от 3000 ₽/рейс\n🌿 Покос травы — от 500 ₽/сотка\n📦 Уборка территории от листвы — от 200 ₽/м²\n\n📞 Точная стоимость зависит от объема работ. Свяжитесь с нами!"
+        text = "💰 <b>Наши цены:</b>\n\n🛠 Разнорабочие — от 500 ₽/час\n🛠 Грузчики — от 400 ₽/час\n🔨 Демонтаж — от 300 ₽/м²\n🚛 Вывоз мусора — от 3000 ₽/рейс\n🌿 Покос травы — от 500 ₽/сотка\n📦 Уборка территории от листвы — от 200 ₽/м²\n\n📞 Точная стоимость зависит от объема работ. Свяжитесь с нами!"
         markup = types.InlineKeyboardMarkup()
         btn_back = types.InlineKeyboardButton("⬅️ В меню", callback_data="menu")
         markup.add(btn_back)
@@ -252,6 +253,4 @@ def get_time(message):
         print(f"Ошибка при отправке клиенту: {e}")
 
 if __name__ == "__main__":
-    import threading
-    threading.Thread(target=bot.polling, kwargs={'non_stop': True}).start()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
