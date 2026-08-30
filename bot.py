@@ -18,7 +18,7 @@ user_data = {}
 
 PRICES = {
     "usluga_raznorab": {"name": "🛠 Разнорабочие", "price": 500, "unit": "час"},
-    "usluga_gruzchiki": {"name": "🛠 Грузчики", "price": 400, "unit": "час"},
+    "usluga_gruzchiki": {"name": "🛠 Грузчики", "price": 500, "unit": "час", "min": 2},
     "usluga_demontazh": {"name": "🔨 Демонтаж", "price": 300, "unit": "м²"},
     "usluga_musor": {"name": "🚛 Вывоз мусора", "price": 3000, "unit": "рейс"},
     "usluga_pokos": {"name": "🌿 Покос травы", "price": 500, "unit": "сотка"},
@@ -137,7 +137,7 @@ def handle_callback(call):
         bot.register_next_step_handler(call.message, ask_stroy_quantity)
 
     elif call.data == "price":
-        text = "💰 <b>Наши цены:</b>\n\n🛠 Разнорабочие — от 500 ₽/час\n🛠 Грузчики — от 400 ₽/час\n🔨 Демонтаж — от 300 ₽/м²\n🚛 Вывоз мусора — от 3000 ₽/рейс\n🌿 Покос травы — от 500 ₽/сотка\n📦 Уборка территории от листвы — от 200 ₽/м²\n\n📞 Точная стоимость зависит от объема работ. Свяжитесь с нами!"
+        text = "💰 <b>Наши цены:</b>\n\n🛠 Разнорабочие — от 500 ₽/час\n🛠 Грузчики — от 500 ₽/час (минимум 2 часа)\n🔨 Демонтаж — от 300 ₽/м²\n🚛 Вывоз мусора — от 3000 ₽/рейс\n🌿 Покос травы — от 500 ₽/сотка\n📦 Уборка территории от листвы — от 200 ₽/м²\n\n📞 Точная стоимость зависит от объема работ. Свяжитесь с нами!"
         markup = types.InlineKeyboardMarkup()
         btn_back = types.InlineKeyboardButton("⬅️ В меню", callback_data="menu")
         markup.add(btn_back)
@@ -180,6 +180,9 @@ def ask_quantity(message):
         quantity = int(message.text)
         service_id = user_data.get(user_id)
         service = PRICES.get(service_id, {"name": "📝 Свой вариант", "price": 0, "unit": "шт"})
+        min_hours = service.get("min", 1)
+        if quantity < min_hours:
+            quantity = min_hours
         total = quantity * service['price']
 
         user_data[f'{user_id}_quantity'] = quantity
