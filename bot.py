@@ -1,6 +1,7 @@
 import telebot
 from telebot import types
 import os
+import threading
 from flask import Flask
 
 app = Flask(__name__)
@@ -256,4 +257,6 @@ def get_time(message):
         print(f"Ошибка при отправке клиенту: {e}")
 
 if __name__ == "__main__":
+    import threading
+    threading.Thread(target=bot.polling, kwargs={'non_stop': True}).start()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
