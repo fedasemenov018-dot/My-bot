@@ -255,6 +255,5 @@ def get_time(message):
     except Exception as e:
         print(f"Ошибка при отправке клиенту: {e}")
 
-if __name__ == "__main__":
-    bot.polling(none_stop=True)
+ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
